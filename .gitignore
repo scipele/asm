@@ -1,3 +1,6 @@
+*
+!*/
+!*.*
 *.exe
 *.xlsx
 *.xlsm
@@ -5,3 +8,4 @@
 *.accdb
 *.bat
 *.dll
+

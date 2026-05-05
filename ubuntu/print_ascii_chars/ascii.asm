@@ -8,7 +8,7 @@ section .data
     
 section .bss                    ; block started by symbol (bss) - uninitialized data section
     buffer resb 16              ; resb -> lower static memory region compared to the stack, near data  heap? memory for the buffer to hold the ASCII digits, | Ascii Symbol and the newline character.
-                                ; We chose 32 bytes to ensure we have enough space for any integer conversion and additional characters.
+                                ; We chose 16 bytes to ensure we have enough space for any integer conversion and additional characters.
         
 section .text
     global _start
@@ -21,7 +21,7 @@ _start:
     mov rdx, len                ; number of bytes
     syscall
 
-    ; Create a loop to print integers from 100 to ...
+    ; Create a loop to loop integers from 32 to 126 (printable ASCII characters)
     mov r9d, 32                 ; Initialize counter to 32 which is the first printable ASCII character space
 
 
@@ -89,10 +89,10 @@ print_int:                      ; prints the integer in r9d as ASCII digits foll
     ret
 
 ; byte_to_hex: converts a byte to two ASCII hex characters
-; Input:  cl  = byte value to convert
+; Input:  cl  = byte value to convert from register r9b (the current integer value we are converting)
 ; Output: r10b = high nibble ASCII char ('0'-'9' or 'A'-'F')
 ;         r11b = low nibble ASCII char  ('0'-'9' or 'A'-'F')
-byte_to_hex:
+byte_to_hex:    ;
     movzx r10d, cl          ; r10b = full byte value
     movzx r11d, cl          ; r11b = full byte value
     shr r10b, 4             ; r10b = high nibble (0-15)

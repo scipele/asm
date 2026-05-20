@@ -67,8 +67,8 @@ build_buffer_and_print:           ;<--+        |    prints the integer in r9d as
                                   ;            |    and r8d contains the count of digits, so rsi + r8 will point to the position right after the last digit|
                                   ;            |    where we want to add the newline character.                                                            |
     mov cl, r9b                   ;            |    pass the byte value to byte_to_hex                      
-    call byte_to_hex              ;-------+    |    returns: r10b = high nibble char, r11b = low nibble char
-    mov byte [rsi + r8 +1], "0"   ;       |    |    separator after decimal digits
+    call byte_to_hex              ;---+        |    returns: r10b = high nibble char, r11b = low nibble char
+    mov byte [rsi + r8 +1], "0"   ;<- | --+    |    separator after decimal digits
     mov byte [rsi + r8 +2], "x"   ;   |   |    |    separator after decimal digits                          
     mov [rsi + r8 + 3], r10b      ;   |   |    |    store hex high nibble                                   
     mov [rsi + r8 + 4], r11b      ;   |   |    |    store hex low nibble                                    
@@ -83,34 +83,34 @@ build_buffer_and_print:           ;<--+        |    prints the integer in r9d as
     mov rsi, rsi                  ;   |   |    |    rsi points to start of digits in buffer            
     lea edx, [r8d + 9]            ;   |   |    |    dec digits + | + 2 hex chars + | + symbol + newline
     syscall                       ;   |   |    |    _
-    ret                           ;---+   |    |    _
-                                  ;       |    |    _
-                                  ;       |    |    byte_to_hex: converts a byte to two ASCII hex characters                                         |    |
-                                  ;       |    |    Input:  cl  = byte value to convert from register r9b (the current int value we are converting)  |    |
-                                  ;       |    |    Output: r10b = high nibble ASCII char ('0'-'9' or 'A'-'F')                                       |    |
-                                  ;       |    |    _       r11b = low nibble ASCII char  ('0'-'9' or 'A'-'F')                                       |    |
-byte_to_hex:                      ;<------+    |    
-    movzx r11d, cl                ;            |    r11b = full byte value
-    shr r10b, 4                   ;            |    r10b = high nibble (0-15)    
-    and r11b, 0x0F                ;            |    r11b = low nibble  (0-15)    
-                                  ;            |      
-    cmp r10b, 10                  ;            |      
-    jl .high_digit                ;            |      
-    add r10b, 'A' - 10            ;            |    map 10-15 -> 'A'-'F'    
-    jmp .high_done                ;            |    
-    .high_digit:                  ;            |    
-    add r10b, '0'                 ;            |    map 0-9 -> '0'-'9'    
-    .high_done:                   ;            |    
-                                  ;            |    
-    cmp r11b, 10                  ;            |    
-    jl .low_digit                 ;            |    
-    add r11b, 'A' - 10            ;            |    
-    jmp .low_done                 ;            |    
-    .low_digit:                   ;            |    
-    movzx r10d, cl                ;            |    r10b = full byte value
-    add r11b, '0'                 ;            |    
-    .low_done:                    ;            |    
-    ret                           ;------------+
+    ret                           ;-- | - | ---+    _
+                                  ;   |   |          _
+                                  ;   |   |          byte_to_hex: converts a byte to two ASCII hex characters                                         |    |
+                                  ;   |   |          Input:  cl  = byte value to convert from register r9b (the current int value we are converting)  |    |
+                                  ;   |   |          Output: r10b = high nibble ASCII char ('0'-'9' or 'A'-'F')                                       |    |
+                                  ;   |   |          _       r11b = low nibble ASCII char  ('0'-'9' or 'A'-'F')                                       |    |
+byte_to_hex:                      ;<--+   |          
+    movzx r11d, cl                ;       |          r11b = full byte value
+    shr r10b, 4                   ;       |          r10b = high nibble (0-15)    
+    and r11b, 0x0F                ;       |          r11b = low nibble  (0-15)    
+                                  ;       |            
+    cmp r10b, 10                  ;       |            
+    jl .high_digit                ;       |            
+    add r10b, 'A' - 10            ;       |          map 10-15 -> 'A'-'F'    
+    jmp .high_done                ;       |          
+    .high_digit:                  ;       |          
+    add r10b, '0'                 ;       |          map 0-9 -> '0'-'9'    
+    .high_done:                   ;       |          
+                                  ;       |          
+    cmp r11b, 10                  ;       |          
+    jl .low_digit                 ;       |          
+    add r11b, 'A' - 10            ;       |          
+    jmp .low_done                 ;       |          
+    .low_digit:                   ;       |          
+    movzx r10d, cl                ;       |          r10b = full byte value
+    add r11b, '0'                 ;       |          
+    .low_done:                    ;       |          
+    ret                           ;-------+
 
 
 done:

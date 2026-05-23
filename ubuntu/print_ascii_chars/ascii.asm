@@ -1,119 +1,148 @@
+default rel
+
 section .data
-    ;db: "define byte" and is used to allocate and initialize a byte of memory with a specific value.
+    ; db: "define byte" and is used to allocate and initialize a byte of memory with a specific value.
     ; In this case, we are using db to define a string of bytes that represent the message we want to print,
     ; followed by a newline character (0xA in hexadecimal). The string is null-terminated, 
     ; meaning it ends with a 0 byte, which is common for strings in assembly language.
-    strg db "dec|hex|char|", 0xA ; message to print with newline
-    len equ $ - strg ; calculate length of the message and store it in len
-    
-section .bss                    ; block started by symbol (bss) - uninitialized data section
-    buffer resb 16              ; resb -> lower static memory region compared to the stack, near data  heap? memory for the buffer to hold the ASCII digits, | Ascii Symbol and the newline character.
-                                ; We chose 16 bytes to ensure we have enough space for any integer conversion and additional characters.
-        
+    strg db "dec | hex  |chr| binary    |", 0xA     ; message to print with newline
+    len equ $ - strg                                ; calculate length of the message and store it in len
+    ; We define some constants for the formatted output fields
+    ; to make it easier to write the formatted string to the buffer later on.
+    SPACE_PIPE_SPACE equ 0x00207C20                 ; " | "
+    SPACE_PIPE_SPACE_ZERO equ 0x30207C20            ; " | 0" 
+    SPACE_PIPE_NEWLINE equ 0x000A7C20               ; " |\n"
+
+section .bss                     ; block started by symbol (bss) - uninitialized data section
+    buffer resb 32               ; resb -> lower static memory region compared to the stack, memory for the buffer to hold the ASCII digits, | Ascii Symbol and the newline character.
+
 section .text
     global _start
 
 _start:
-    ; Write header string to stdout
-    mov rax, 1                  ; system call for write
-    mov rdi, 1                  ; file descriptor 1 is stdout
-    mov rsi, strg               ; address of string to output
-    mov rdx, len                ; number of bytes
+; --- STEP 1 --- Write header string to stdout
+    mov rax, 1                    ; system call for write
+    mov rdi, 1                    ; file descriptor 1 is stdout
+    mov rsi, strg                 ; address of string to output
+    mov rdx, len                  ; number of bytes
     syscall
 
-    ; Create a loop to loop integers from 32 to 126 (printable ASCII characters)
-    mov r9d, 32                 ; Initialize counter to 32 which is the first printable ASCII character space
+; --- STEP 2 --- Create a loop OF integers from 32 to 126 (printable ASCII characters)
+    mov r9d, 32                   ; Initialize counter to 32 which is the first printable ASCII character space
 
+; --- STEP 3 --- setup registers and buffer for conversion and printing
+ascii_conv_loop:                  ;
+    mov eax, r9d                  ; Move the current integer value from r9d into eax, which is the register used for the conversion
+                                  ; process in print_int. This sets up the integer we want to convert to ASCII digits for the print_int function.
+    lea rsi, [buffer + 32]        ; lea (load effective address) is used to get the address of the end of the buffer,
+                                  ; which is where we will start storing the ASCII digits. 
+                                  ; We start from the end of the buffer (hence the +32) because we will be storing digits in reverse order as we convert them.
+; --- STEP 4 --- Call the conversion and printing routine                                 
+    call build_buffer_and_print   ; Call the conversion loop to convert the integer to ASCII
+    inc r9d                       ; Increment the counter
+    cmp r9d, 127                  ; Compare counter with num of integers to print
+    jl ascii_conv_loop            ; If counter is less than the number, repeat the loop
+    jmp done                      ; jump to done to exit the program after printing all integers
+                                  
+; --- STEP 5 --- Build buffer and print integer_
+build_buffer_and_print:           ; prints the integer in r9d as ASCII digits followed by a newline
+; Registers in this routine:
+;   rsi = start of current output row
+;   rdi = write cursor,
+;   r8d = decimal field width
 
-ascii_conv_loop:
-    mov eax, r9d                ; Move the current integer value from r9d into eax, which is the register used for the conversion process in print_int. This sets up the integer we want to convert to ASCII digits for the print_int function.
-    lea rsi, [buffer + 16]      ; lea (load effective address) is used to get the address of the end of the buffer,
-                                ; which is where we will start storing the ASCII digits. 
-                                ; We start from the end of the buffer (hence the +6) because we will be storing digits in reverse order as we convert them.
-    call print_int              ; Call the conversion loop to convert the integer to ASCII
-    inc r9d                     ; Increment the counter
-    cmp r9d, 127                ; Compare counter with num of integers to print
-    jl ascii_conv_loop          ; If counter is less than the number, repeat the loop
-    jmp done                    ; jump to done to exit the program after printing all integers
+; --- STEP 6 --- Build decimal field (right-to-left), then pad values < 100 with one leading space
+    mov ebx, 10
+    xor r8d, r8d
 
+loop_each_digit:
+        xor edx, edx
+        div ebx
+        add dl, '0'
+        dec rsi
+        mov [rsi], dl
+        inc r8d
+        test eax, eax
+        jnz loop_each_digit
 
-print_int:                      ; prints the integer in r9d as ASCII digits followed by a newline
-                                ; how does it work? It takes the integer in r9d, converts it to ASCII digits, and stores those digits in the buffer. Then it appends a newline character after the digits and writes the entire string to stdout using a syscall. The conversion is done by repeatedly dividing the integer by 10 and storing the remainders as ASCII characters until the integer is reduced to zero.  
+    cmp r9d, 100
+    jge .dec_field_ready
+    dec rsi
+    mov byte [rsi], ' '
+    inc r8d
+.dec_field_ready:
+; rsi + r8 points just past the decimal field.
 
-    ;initialize registers for conversion
-    mov ebx, 10                 ; Set divisor to 10 for converting integers to ASCII digits
-    mov rsi, rsi                ; what does this do? It is essentially a no-op, it moves the value of rsi into itself.
-                                ; This might be done to ensure that rsi is properly set up for the conversion process, as rsi is used as a pointer
-                                ; to the buffer where the ASCII digits will be stored. By moving rsi into itself, we are just confirming that 
-                                ; rsi is correctly initialized before we start using it in the conversion loop.
-    xor r8d, r8d                ; Clear digit count
-    loop_each_digit:  
-        xor edx, edx            ; Clear EDX (by xoring it with itself) to prepare for division  
-        div ebx                 ; div - quotient is eax (based on cpu architecture
-                                ; and divisor is ebx)
-                                ; remainder goes to edx. 
-        add dl, '0'             ; Convert the remainder to ASCII
-        dec rsi                 ; dec - decrements the value of rsi, which is a pointer to the current position in the buffer
-                                ; where we want to store the next ASCII digit. By decrementing rsi, 
-                                ; we move backwards through the buffer as we store each digit, since we are converting the integer 
-                                ; from least significant digit to most significant digit. This way, when we finish the conversion, 
-                                ; rsi will point to the start of the digits in the buffer.
-        mov [rsi], dl           ; Store the ASCII digit in the buffer
-        inc r8d                 ; Increment the digit count
-        test eax, eax           ; Check if the quotient is zero
-        jnz loop_each_digit     ; If EAX is not zero, continue the loop
+; --- STEP 7 --- Convert current byte to two hex chars
+    mov cl, r9b
+    call byte_to_hex
 
-    ; Append newline after digits so one write syscall prints both
-    ; why rsi + r8? Because rsi points to the start of the digits in the buffer,
-    ; and r8d contains the count of digits, so rsi + r8 will point to the position right after the last digit 
-    ; where we want to add the newline character. 
-    mov byte [rsi + r8], "|"        ; separator after decimal digits
-    mov cl, r9b                     ; pass the byte value to byte_to_hex
-    call byte_to_hex                ; returns: r10b = high nibble char, r11b = low nibble char
-    mov byte [rsi + r8 +1], "0"     ; separator after decimal digits
-    mov byte [rsi + r8 +2], "x"     ; separator after decimal digits
-    mov [rsi + r8 + 3], r10b        ; store hex high nibble
-    mov [rsi + r8 + 4], r11b        ; store hex low nibble
-    mov byte [rsi + r8 + 5], "|"    ; separator after hex
-    mov al, r9b                     ; the ASCII symbol itself
-    mov [rsi + r8 + 6], al          ; store symbol
-    mov byte [rsi + r8 + 7], "|"    ; separator after hex
-    mov byte [rsi + r8 + 8], 0x0A   ; newline
+; --- STEP 8 --- Append hex field and character field
+    lea rdi, [rsi + r8]
+    mov dword [rdi], SPACE_PIPE_SPACE_ZERO   ; " | 0"
+    add rdi, 4
+    mov [rdi], 'x'
+    inc rdi
+    mov [rdi], r10b ; high hex char
+    mov [rdi + 1], r11b ; low hex char
+    add rdi, 2
+    mov dword [rdi], SPACE_PIPE_SPACE   ; " | "
+    add rdi, 3
+    mov al, r9b
+    mov [rdi], al
+    inc rdi
+    mov dword [rdi], SPACE_PIPE_SPACE   ; " | "
+    add rdi, 3
 
-    ; Write the digits and trailing newline to stdout
-    mov rax, 1                      ; sys_write
-    mov rdi, 1                      ; stdout
-    mov rsi, rsi                    ; rsi points to start of digits in buffer
-    lea edx, [r8d + 9]              ; dec digits + | + 2 hex chars + | + symbol + newline
+; --- STEP 9 --- Append binary field (8 bits with a space after bit 4)
+    mov ecx, 8
+
+build_binary_str_loop:
+    shl al, 1
+    mov dl, '0'
+    adc dl, 0
+    mov [rdi], dl
+    inc rdi
+    cmp rcx, 5
+    jne .no_space
+    mov byte [rdi], ' '
+    inc rdi
+.no_space:
+    loop build_binary_str_loop
+    mov dword [rdi], SPACE_PIPE_NEWLINE   ; " |\n"
+    add rdi, 3
+
+; --- STEP 10 --- Write the formatted string to stdout with a single syscall
+    lea rdx, [rdi + 1]
+    sub rdx, rsi
+    mov rax, 1
+    mov rdi, 1
     syscall
     ret
 
-; byte_to_hex: converts a byte to two ASCII hex characters
-; Input:  cl  = byte value to convert from register r9b (the current integer value we are converting)
-; Output: r10b = high nibble ASCII char ('0'-'9' or 'A'-'F')
-;         r11b = low nibble ASCII char  ('0'-'9' or 'A'-'F')
-byte_to_hex:    ;
-    movzx r10d, cl          ; r10b = full byte value
-    movzx r11d, cl          ; r11b = full byte value
-    shr r10b, 4             ; r10b = high nibble (0-15)
-    and r11b, 0x0F          ; r11b = low nibble  (0-15)
-
-    cmp r10b, 10
-    jl .high_digit
-    add r10b, 'A' - 10      ; map 10-15 -> 'A'-'F'
-    jmp .high_done
-    .high_digit:
-    add r10b, '0'           ; map 0-9 -> '0'-'9'
-    .high_done:
-
-    cmp r11b, 10
-    jl .low_digit
-    add r11b, 'A' - 10
-    jmp .low_done
-    .low_digit:
-    add r11b, '0'
-    .low_done:
-    ret
+; helper function to convert a byte in cl to two ASCII hex characters in r10b and r11b
+byte_to_hex:                      
+    movzx r10d, cl      ;r10b = full byte value
+    movzx r11d, cl      ;r11b = full byte value
+    shr r10b, 4         ;r10b = high nibble (0-15)    
+    and r11b, 0x0F      ;r11b = low nibble  (0-15)    
+                                               
+    cmp r10b, 10                               
+    jl .high_digit                             
+    add r10b, 'A' - 10  ;map 10-15 -> 'A'-'F'    
+    jmp .high_done                          
+    .high_digit:                            
+    add r10b, '0'       ;map 0-9 -> '0'-'9'    
+    .high_done:                             
+                                            
+    cmp r11b, 10                            
+    jl .low_digit                           
+add r11b, 'A' - 10      ;map 10-15 -> 'A'-'F'                       
+    jmp .low_done                           
+    .low_digit:                            
+    add r11b, '0'       ;map 0-9 -> '0'-'9'                          
+    .low_done:                             
+    ret                           
 
 
 done:

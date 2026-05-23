@@ -1,29 +1,29 @@
 default rel
 
 section .data
-                                  ;                 db: "define byte" and is used to allocate and initialize a byte of memory with a specific value.
-                                  ;                 In this case, we are using db to define a string of bytes that represent the message we want to print,
-                                  ;                 followed by a newline character (0xA in hexadecimal). The string is null-terminated, 
-                                  ;                 meaning it ends with a 0 byte, which is common for strings in assembly language.
-    strg db "dec | hex  |chr| bin       |", 0xA  ;   message to print with newline
-    len equ $ - strg              ;                 calculate length of the message and store it in len
-                                  ;                
-section .bss                      ;                 block started by symbol (bss) - uninitialized data section
-    buffer resb 32                ;                 resb -> lower static memory region compared to the stack, memory for the buffer to hold the ASCII digits, | Ascii Symbol and the newline character.
-                                  ;                
+                                ; db: "define byte" and is used to allocate and initialize a byte of memory with a specific value.
+                                ; In this case, we are using db to define a string of bytes that represent the message we want to print,
+                                ; followed by a newline character (0xA in hexadecimal). The string is null-terminated, 
+                                ; meaning it ends with a 0 byte, which is common for strings in assembly language.
+    strg db "dec | hex  |chr| binary    |", 0xA  ;   message to print with newline
+    len equ $ - strg             ; calculate length of the message and store it in len
+
+section .bss                     ; block started by symbol (bss) - uninitialized data section
+    buffer resb 32               ; resb -> lower static memory region compared to the stack, memory for the buffer to hold the ASCII digits, | Ascii Symbol and the newline character.
+
 section .text
     global _start
 
 _start:
 ; --- STEP 1 --- Write header string to stdout
-    mov rax, 1                    ;                 system call for write
-    mov rdi, 1                    ;                 file descriptor 1 is stdout
-    mov rsi, strg                 ;                 address of string to output
-    mov rdx, len                  ;                 number of bytes
+    mov rax, 1                    ; system call for write
+    mov rdi, 1                    ; file descriptor 1 is stdout
+    mov rsi, strg                 ; address of string to output
+    mov rdx, len                  ; number of bytes
     syscall
 
 ; --- STEP 2 --- Create a loop OF integers from 32 to 126 (printable ASCII characters)
-    mov r9d, 32                   ;                 Initialize counter to 32 which is the first printable ASCII character space
+    mov r9d, 32                   ; Initialize counter to 32 which is the first printable ASCII character space
 
 ; --- STEP 3 --- setup registers and buffer for conversion and printing
 ascii_conv_loop:                  ;
@@ -38,11 +38,13 @@ ascii_conv_loop:                  ;
     cmp r9d, 127                  ; Compare counter with num of integers to print
     jl ascii_conv_loop            ; If counter is less than the number, repeat the loop
     jmp done                      ; jump to done to exit the program after printing all integers
-                                  ; _
+                                  
 ; --- STEP 5 --- Build buffer and print integer_
 build_buffer_and_print:           ; prints the integer in r9d as ASCII digits followed by a newline
 ; Registers in this routine:
-; rsi = start of current output row, rdi = write cursor, r8d = decimal field width
+;   rsi = start of current output row
+;   rdi = write cursor,
+;   r8d = decimal field width
 
 ; --- STEP 6 --- Build decimal field (right-to-left), then pad values < 100 with one leading space
     mov ebx, 10
@@ -76,8 +78,8 @@ loop_each_digit:
     add rdi, 4
     mov [rdi], 'x'
     inc rdi
-    mov [rdi], r10b
-    mov [rdi + 1], r11b
+    mov [rdi], r10b ; high hex char
+    mov [rdi + 1], r11b ; low hex char
     add rdi, 2
     mov dword [rdi], 0x00207C20   ; " | "
     add rdi, 3

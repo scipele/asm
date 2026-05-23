@@ -5,11 +5,11 @@ section .data
                                   ;                 In this case, we are using db to define a string of bytes that represent the message we want to print,
                                   ;                 followed by a newline character (0xA in hexadecimal). The string is null-terminated, 
                                   ;                 meaning it ends with a 0 byte, which is common for strings in assembly language.
-    strg db "dec|hex|char|", 0xA  ;                 message to print with newline
+    strg db "dec|hex|char|bin|", 0xA  ;             message to print with newline
     len equ $ - strg              ;                 calculate length of the message and store it in len
                                   ;                
 section .bss                      ;                 block started by symbol (bss) - uninitialized data section
-    buffer resb 16                ;                 resb -> lower static memory region compared to the stack, near data  heap? memory for the buffer to hold the ASCII digits, | Ascii Symbol and the newline character.
+    buffer resb 32                ;                 resb -> lower static memory region compared to the stack, near data  heap? memory for the buffer to hold the ASCII digits, | Ascii Symbol and the newline character.
                                   ;                 We chose 16 bytes to ensure we have enough space for any integer conversion and additional characters.
                                   ;                
 section .text
@@ -39,6 +39,7 @@ ascii_conv_loop:                  ;<-------+
                                   ;   |        |    _
                                   ;   |        |    _
 build_buffer_and_print:           ;<--+        |    prints the integer in r9d as ASCII digits followed by a newline
+                                  ;            | ** STEP 1: **Convert integer in r9d to ASCII digits and store in buffer  
                                   ;            |    how does it work? It takes the integer in r9d, converts it to ASCII digits, and stores those digits in the buffer. Then it appends a newline character after the digits and writes the entire string to stdout using a syscall. The conversion is done by repeatedly dividing the integer by 10 and storing the remainders as ASCII characters until the integer is reduced to zero.  
                                   ;            |    initialize registers for conversion
     mov ebx, 10                   ;            |    Set divisor to 10 for converting integers to ASCII digits
@@ -66,7 +67,7 @@ build_buffer_and_print:           ;<--+        |    prints the integer in r9d as
                                   ;            |    why rsi + r8? Because rsi points to the start of the digits in the buffer,                             | 
                                   ;            |    and r8d contains the count of digits, so rsi + r8 will point to the position right after the last digit|
                                   ;            |    where we want to add the newline character.                                                            |
-    mov cl, r9b                   ;            |    pass the byte value to byte_to_hex                      
+    mov cl, r9b                   ;            | 
     call byte_to_hex              ;---+        |    returns: r10b = high nibble char, r11b = low nibble char
     mov byte [rsi + r8 +1], "|"   ;<- | --+    |    separator after decimal digits
     mov byte [rsi + r8 +2], "0"   ;   |   |    |    separator after decimal digits                          
@@ -76,13 +77,30 @@ build_buffer_and_print:           ;<--+        |    prints the integer in r9d as
     mov byte [rsi + r8 + 6], "|"  ;   |   |    |    separator after hex                                     
     mov al, r9b                   ;   |   |    |    the ASCII symbol itself                                 
     mov [rsi + r8 + 7], al        ;   |   |    |    store symbol                                            
-    mov byte [rsi + r8 + 8], "|"  ;   |   |    |    separator after hex                                     
-    mov byte [rsi + r8 + 9], 0x0A ;   |   |    |    newline                                                 
+    mov byte [rsi + r8 + 8], "|"  ;   |   |    |    separator after char
+    lea rdi, [rsi + r8 + 9]       ;   |   |    |    binary field starts here
+    mov ecx, 8                    ;   |   |    |    emit 8 bits (MSB -> LSB)
+                                  ;   |   |    |    
+build_binary_str_loop:            ;   |   |    |    
+    shl al, 1                     ;   |   |    |    ; Shift MSB into Carry Flag
+    mov dl, '0'                   ;   |   |    |    ; Start with ASCII '0'
+    adc dl, 0                     ;   |   |    |    ; Add the Carry Flag (0 or 1) to '0'
+    mov [rdi], dl                 ;   |   |    |    ; Store '0' or '1' in buffer
+    inc rdi                       ;   |   |    |    ; Move to next buffer position
+    cmp rcx, 5                    ;   |   |    |    ; 4 bits have been written when rcx == 5
+    jne .no_space
+    mov byte [rdi], ' ' ; Insert space after 4th bit
+    inc rdi             ; Move past the space
+.no_space:
+    loop build_binary_str_loop
+    mov byte [rdi], "|"            ;   |   |    |    separator after binary
+    inc rdi
+    mov byte [rdi], 0x0A           ;   |   |    |    newline
                                   ;   |   |    |    Write the digits and trailing newline to stdout
     mov rax, 1                    ;   |   |    |    sys_write
     mov rdi, 1                    ;   |   |    |    stdout                                             
     mov rsi, rsi                  ;   |   |    |    rsi points to start of digits in buffer            
-    lea edx, [r8d + 10]            ;   |   |    |    dec digits + | + 2 hex chars + | + symbol + newline
+    lea edx, [r8d + 20]            ;   |   |    |    dec + |0xHH|C| + 8 bits + space + | + newline
     syscall                       ;   |   |    |    _
     ret                           ;-- | - | ---+    _
                                   ;   |   |          _

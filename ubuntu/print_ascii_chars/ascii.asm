@@ -68,20 +68,21 @@ build_buffer_and_print:           ;<--+        |    prints the integer in r9d as
                                   ;            |    where we want to add the newline character.                                                            |
     mov cl, r9b                   ;            |    pass the byte value to byte_to_hex                      
     call byte_to_hex              ;---+        |    returns: r10b = high nibble char, r11b = low nibble char
-    mov byte [rsi + r8 +1], "0"   ;<- | --+    |    separator after decimal digits
-    mov byte [rsi + r8 +2], "x"   ;   |   |    |    separator after decimal digits                          
-    mov [rsi + r8 + 3], r10b      ;   |   |    |    store hex high nibble                                   
-    mov [rsi + r8 + 4], r11b      ;   |   |    |    store hex low nibble                                    
-    mov byte [rsi + r8 + 5], "|"  ;   |   |    |    separator after hex                                     
+    mov byte [rsi + r8 +1], "|"   ;<- | --+    |    separator after decimal digits
+    mov byte [rsi + r8 +2], "0"   ;   |   |    |    separator after decimal digits                          
+    mov byte [rsi + r8 +3], "x"   ;   |   |    |    separator after decimal digits                          
+    mov [rsi + r8 + 4], r10b      ;   |   |    |    store hex high nibble                                   
+    mov [rsi + r8 + 5], r11b      ;   |   |    |    store hex low nibble                                    
+    mov byte [rsi + r8 + 6], "|"  ;   |   |    |    separator after hex                                     
     mov al, r9b                   ;   |   |    |    the ASCII symbol itself                                 
-    mov [rsi + r8 + 6], al        ;   |   |    |    store symbol                                            
-    mov byte [rsi + r8 + 7], "|"  ;   |   |    |    separator after hex                                     
-    mov byte [rsi + r8 + 8], 0x0A ;   |   |    |    newline                                                 
+    mov [rsi + r8 + 7], al        ;   |   |    |    store symbol                                            
+    mov byte [rsi + r8 + 8], "|"  ;   |   |    |    separator after hex                                     
+    mov byte [rsi + r8 + 9], 0x0A ;   |   |    |    newline                                                 
                                   ;   |   |    |    Write the digits and trailing newline to stdout
     mov rax, 1                    ;   |   |    |    sys_write
     mov rdi, 1                    ;   |   |    |    stdout                                             
     mov rsi, rsi                  ;   |   |    |    rsi points to start of digits in buffer            
-    lea edx, [r8d + 9]            ;   |   |    |    dec digits + | + 2 hex chars + | + symbol + newline
+    lea edx, [r8d + 10]            ;   |   |    |    dec digits + | + 2 hex chars + | + symbol + newline
     syscall                       ;   |   |    |    _
     ret                           ;-- | - | ---+    _
                                   ;   |   |          _
@@ -90,6 +91,7 @@ build_buffer_and_print:           ;<--+        |    prints the integer in r9d as
                                   ;   |   |          Output: r10b = high nibble ASCII char ('0'-'9' or 'A'-'F')                                       |    |
                                   ;   |   |          _       r11b = low nibble ASCII char  ('0'-'9' or 'A'-'F')                                       |    |
 byte_to_hex:                      ;<--+   |          
+    movzx r10d, cl                ;       |          r10b = full byte value
     movzx r11d, cl                ;       |          r11b = full byte value
     shr r10b, 4                   ;       |          r10b = high nibble (0-15)    
     and r11b, 0x0F                ;       |          r11b = low nibble  (0-15)    
@@ -107,7 +109,6 @@ byte_to_hex:                      ;<--+   |
     add r11b, 'A' - 10            ;       |          
     jmp .low_done                 ;       |          
     .low_digit:                   ;       |          
-    movzx r10d, cl                ;       |          r10b = full byte value
     add r11b, '0'                 ;       |          
     .low_done:                    ;       |          
     ret                           ;-------+

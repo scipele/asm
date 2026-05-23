@@ -1,12 +1,17 @@
 default rel
 
 section .data
-                                ; db: "define byte" and is used to allocate and initialize a byte of memory with a specific value.
-                                ; In this case, we are using db to define a string of bytes that represent the message we want to print,
-                                ; followed by a newline character (0xA in hexadecimal). The string is null-terminated, 
-                                ; meaning it ends with a 0 byte, which is common for strings in assembly language.
-    strg db "dec | hex  |chr| binary    |", 0xA  ;   message to print with newline
-    len equ $ - strg             ; calculate length of the message and store it in len
+    ; db: "define byte" and is used to allocate and initialize a byte of memory with a specific value.
+    ; In this case, we are using db to define a string of bytes that represent the message we want to print,
+    ; followed by a newline character (0xA in hexadecimal). The string is null-terminated, 
+    ; meaning it ends with a 0 byte, which is common for strings in assembly language.
+    strg db "dec | hex  |chr| binary    |", 0xA     ; message to print with newline
+    len equ $ - strg                                ; calculate length of the message and store it in len
+    ; We define some constants for the formatted output fields
+    ; to make it easier to write the formatted string to the buffer later on.
+    SPACE_PIPE_SPACE equ 0x00207C20                 ; " | "
+    SPACE_PIPE_SPACE_ZERO equ 0x30207C20            ; " | 0" 
+    SPACE_PIPE_NEWLINE equ 0x000A7C20               ; " |\n"
 
 section .bss                     ; block started by symbol (bss) - uninitialized data section
     buffer resb 32               ; resb -> lower static memory region compared to the stack, memory for the buffer to hold the ASCII digits, | Ascii Symbol and the newline character.
@@ -74,19 +79,19 @@ loop_each_digit:
 
 ; --- STEP 8 --- Append hex field and character field
     lea rdi, [rsi + r8]
-    mov dword [rdi], 0x30207C20   ; " | 0"
+    mov dword [rdi], SPACE_PIPE_SPACE_ZERO   ; " | 0"
     add rdi, 4
     mov [rdi], 'x'
     inc rdi
     mov [rdi], r10b ; high hex char
     mov [rdi + 1], r11b ; low hex char
     add rdi, 2
-    mov dword [rdi], 0x00207C20   ; " | "
+    mov dword [rdi], SPACE_PIPE_SPACE   ; " | "
     add rdi, 3
     mov al, r9b
     mov [rdi], al
     inc rdi
-    mov dword [rdi], 0x00207C20   ; " | "
+    mov dword [rdi], SPACE_PIPE_SPACE   ; " | "
     add rdi, 3
 
 ; --- STEP 9 --- Append binary field (8 bits with a space after bit 4)
@@ -104,7 +109,7 @@ build_binary_str_loop:
     inc rdi
 .no_space:
     loop build_binary_str_loop
-    mov dword [rdi], 0x000A7C20   ; " |\n"
+    mov dword [rdi], SPACE_PIPE_NEWLINE   ; " |\n"
     add rdi, 3
 
 ; --- STEP 10 --- Write the formatted string to stdout with a single syscall

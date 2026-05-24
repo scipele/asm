@@ -1,0 +1,22 @@
+{
+  "debug.allowBreakpointsEverywhere": true,
+  "editor.glyphMargin": true,
+  "files.associations": {
+    "*.asm": "asm-intel-x86-generic",
+    "*.inc": "asm-intel-x86-generic",
+    "*.nasm": "asm-intel-x86-generic",
+    "*.s": "asm-intel-x86-generic"
+  },
+  "[plaintext]": {
+    "editor.glyphMargin": true
+  },
+  "[asm]": {
+    "editor.glyphMargin": true
+  },
+  "[nasm]": {
+    "editor.glyphMargin": true
+  },
+  "[asm-intel-x86-generic]": {
+    "editor.glyphMargin": true
+  }
+}

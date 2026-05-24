@@ -2,43 +2,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "(gdb) Launch C++ active file",
-      "type": "cppdbg",
-      "request": "launch",
-      "preLaunchTask": "C/C++: g++ build active file",
-      "program": "${fileDirname}/${fileBasenameNoExtension}",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${fileDirname}",
-      "environment": [
-        {
-          "name": "DEBUGINFOD_URLS",
-          "value": ""
-        }
-      ],
-      "externalConsole": false,
-      "MIMode": "gdb",
-      "miDebuggerPath": "/usr/bin/gdb",
-      "launchCompleteCommand": "exec-run",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Set Disassembly Flavor to Intel",
-          "text": "-gdb-set disassembly-flavor intel",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Disable debuginfod prompt in debugger sessions",
-          "text": "set debuginfod enabled off",
-          "ignoreFailures": true
-        }
-      ]
-    },
-    {
       "name": "Debug active ASM file (gdb)",
       "type": "cppdbg",
       "request": "launch",
@@ -50,14 +13,21 @@
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "sourceFileMap": {
-        "/ubuntu": "/home/dev/asm/ubuntu"
-      },
       "preLaunchTask": "ASM: Build active file (NASM+LD)",
       "setupCommands": [
         {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
           "description": "Enable Intel disassembly flavor",
           "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Disable debuginfod prompt in debugger sessions",
+          "text": "set debuginfod enabled off",
           "ignoreFailures": true
         }
       ]

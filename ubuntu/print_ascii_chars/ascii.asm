@@ -5,18 +5,18 @@ section .data
     ; In this case, we are using db to define a string of bytes that represent the message we want to print,
     ; followed by a newline character (0xA in hexadecimal). The string is null-terminated, 
     ; meaning it ends with a 0 byte, which is common for strings in assembly language.
-    strg db "dec | hex  |chr| binary    |", 0xA     ; message to print with newline
+    strg db "dec | hex  |chr| binary    | Octal |", 0xA     ; message to print with newline
     len equ $ - strg                                ; calculate length of the message and store it in len
     ; We define some constants for the formatted output fields
     ; to make it easier to write the formatted string to the buffer later on.
     START_ASCII_NUMBER equ 32
     END_ASCII_NUMBER equ 126
     SPACE_PIPE_SPACE equ 0x00207C20                 ; " | "
-    SPACE_PIPE_SPACE_ZERO equ 0x30207C20            ; " | 0" 
+    SPACE_PIPE_SPACE_ZERO equ 0x30207C20            ; " | 0"
     SPACE_PIPE_NEWLINE equ 0x000A7C20               ; " |\n"
 
 section .bss                     ; block started by symbol (bss) - uninitialized data section
-    buffer resb 32               ; resb -> lower static memory region compared to the stack, memory for the buffer to hold the ASCII digits, | Ascii Symbol and the newline character.
+    buffer resb 38               ; resb -> lower static memory region compared to the stack, memory for the buffer to hold the ASCII digits, | Ascii Symbol and the newline character.
 
 section .text
     global _start
@@ -36,9 +36,9 @@ _start:
 ascii_conv_loop:                  ;
     mov eax, r9d                  ; Move the current integer value from r9d into eax, which is the register used for the conversion
                                   ; process in print_int. This sets up the integer we want to convert to ASCII digits for the print_int function.
-    lea rsi, [buffer + 32]        ; lea (load effective address) is used to get the address of the end of the buffer,
+    lea rsi, [buffer + 38]        ; lea (load effective address) is used to get the address of the end of the buffer,
                                   ; which is where we will start storing the ASCII digits. 
-                                  ; We start from the end of the buffer (hence the +32) because we will be storing digits in reverse order as we convert them.
+                                  ; We start from the end of the buffer (hence the +38) because we will be storing digits in reverse order as we convert them.
 ; --- STEP 4 --- Call the conversion and printing routine                                 
     call build_buffer_and_print   ; Call the conversion loop to convert the integer to ASCII
     inc r9d                       ; Increment the counter
@@ -111,10 +111,35 @@ build_binary_str_loop:
     inc rdi
 .no_space:
     loop build_binary_str_loop
+    
+    ; finish binary, now add spacer
+    
+    mov dword [rdi], SPACE_PIPE_SPACE_ZERO   ; " | "
+    add rdi, 4
+    mov byte [rdi], 'o' ; start of octal field
+    inc rdi
+
+
+; --- STEP 10 --- now move forward since we will build the octal string in reverse order
+    movzx eax, r9b      ; current value to convert to octal
+    mov ebx, 8
+    mov ecx, 3          ; fixed 3-digit octal field (000..177)
+
+build_octal_str_loop:
+    xor edx, edx
+    div ebx
+    add dl, '0'
+    mov [rdi + rcx - 1], dl
+    dec ecx
+    jnz build_octal_str_loop
+
+octal_loop_end:
+    add rdi, 3
+   
     mov dword [rdi], SPACE_PIPE_NEWLINE   ; " |\n"
     add rdi, 3
 
-; --- STEP 10 --- Write the formatted string to stdout with a single syscall
+; --- STEP 11 --- Write the formatted string to stdout with a single syscall
     lea rdx, [rdi + 1]
     sub rdx, rsi
     mov rax, 1

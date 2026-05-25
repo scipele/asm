@@ -9,6 +9,8 @@ section .data
     len equ $ - strg                                ; calculate length of the message and store it in len
     ; We define some constants for the formatted output fields
     ; to make it easier to write the formatted string to the buffer later on.
+    START_ASCII_NUMBER equ 32
+    END_ASCII_NUMBER equ 126
     SPACE_PIPE_SPACE equ 0x00207C20                 ; " | "
     SPACE_PIPE_SPACE_ZERO equ 0x30207C20            ; " | 0" 
     SPACE_PIPE_NEWLINE equ 0x000A7C20               ; " |\n"
@@ -28,7 +30,7 @@ _start:
     syscall
 
 ; --- STEP 2 --- Create a loop OF integers from 32 to 126 (printable ASCII characters)
-    mov r9d, 32                   ; Initialize counter to 32 which is the first printable ASCII character space
+    mov r9d, START_ASCII_NUMBER   ; Initialize counter to 32 which is the first printable ASCII character space
 
 ; --- STEP 3 --- setup registers and buffer for conversion and printing
 ascii_conv_loop:                  ;
@@ -40,7 +42,7 @@ ascii_conv_loop:                  ;
 ; --- STEP 4 --- Call the conversion and printing routine                                 
     call build_buffer_and_print   ; Call the conversion loop to convert the integer to ASCII
     inc r9d                       ; Increment the counter
-    cmp r9d, 127                  ; Compare counter with num of integers to print
+    cmp r9d, END_ASCII_NUMBER + 1 ; Compare counter with num of integers to print
     jl ascii_conv_loop            ; If counter is less than the number, repeat the loop
     jmp done                      ; jump to done to exit the program after printing all integers
                                   

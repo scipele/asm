@@ -83,7 +83,7 @@ loop_each_digit:
     lea rdi, [rsi + r8]
     mov dword [rdi], SPACE_PIPE_SPACE_ZERO   ; " | 0"
     add rdi, 4
-    mov [rdi], 'x'
+    mov byte [rdi], 'x'
     inc rdi
     mov [rdi], r10b ; high hex char
     mov [rdi + 1], r11b ; low hex char

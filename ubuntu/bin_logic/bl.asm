@@ -1,33 +1,22 @@
 section .data
-    msg1 db 0xA, 0xA, "Examples of bitwise operations:", 0xA, 0xA   ;newline chars
-    len1 equ $ - msg1
+    msg1 db 0xA, 0xA, "Examples of bitwise operations:", 0xA, 0xA, 0   ;newline chars
 
-    msg2 db "1. xor operation scramles the initial byte:", 0xA, "          "
-    len2 equ $ - msg2
-    msg3 db "      xor "
-    len3 equ $ - msg3
-    msg4 db "     ---------------", 0xA
-    len4 equ $ - msg4
+    msg2 db "1. xor operation scramles the initial byte:", 0xA, "          ", 0
+    msg3 db "      xor ", 0
+    msg4 db "     ---------------", 0xA, 0
 
-    msg5 db 0xA, "2. and operation with mask to isolate low nibble:", 0xA, "          "
-    len5 equ $ - msg5
-    msg6 db "      and "
-    len6 equ $ - msg6
+    msg5 db 0xA, "2. and operation with mask to isolate low nibble:", 0xA, "          ", 0
+    msg6 db "      and ", 0
 
-    msg7 db 0xA, "3. or operation to set the third bit to 1 while leaving others unchanged:", 0xA, "          "
-    len7 equ $ - msg7
-    msg8 db "      or  "
-    len8 equ $ - msg8
+    msg7 db 0xA, "3. or operation to set the third bit to 1 while leaving others unchanged:", 0xA, "          ", 0
+    msg8 db "      or  ", 0
         
-    msg9 db 0xA, "4. Shift right operation to isolate high nibble:", 0xA, "          "
-    len9 equ $ - msg9
-    msg10 db "   shr, 4 "
-    len10 equ $ - msg10
+    msg9 db 0xA, "4. Shift right operation to isolate high nibble:", 0xA, "          ", 0
+    msg10 db "   shr, 4 ", 0
 
-    str_tab2 db "          " ; spaces for indentation
-    len_tb2 equ $ - str_tab2
+    str_tab2 db "          ", 0 ; spaces for indentation
 
-    end_spcs db 0xA, 0xA, 0xA, 0xA
+    end_spcs db 0xA, 0xA, 0xA, 0xA, 0
 
 section .bss
     buf_input resb 16       ; Reserve 16 bytes for user input
@@ -37,23 +26,30 @@ section .bss
 section .text
     global _start
 
+%macro PRINTZ 1
+    mov rsi, %1
+    call print_cstr
+%endmacro
+
+%macro PRINT_BIN 1
+    mov al, %1
+    call print_binary_string
+%endmacro
+
 
 _start:
     ; print the initial messages
-    call print_msg1_2
+    PRINTZ msg1
+    PRINTZ msg2
     
     ;----------------------------------
     ;--- Step 1 Binary Xor Example: ---
     ;----------------------------------
-    mov al, 237          ; integer to convert
-    call print_binary_string
-
-    call print_msg3
-    mov al, 213          ; integer to convert
-    call print_binary_string
-    call print_msg4
-
-    call print_tab2
+    PRINT_BIN 237
+    PRINTZ msg3
+    PRINT_BIN 213
+    PRINTZ msg4
+    PRINTZ str_tab2
     mov al, 237          ; integer to convert
     xor al, 213           ; Perform XOR operation
     call print_binary_string
@@ -62,16 +58,12 @@ _start:
     ;-------------------------------------
     ; --- Step 2 Binary And Operation  ---
     ;-------------------------------------
-    call print_msg5
-    mov al, 237          ; integer to convert
-    call print_binary_string
-
-    call print_msg6
-    mov al, 15          ; integer to convert
-    call print_binary_string
-    call print_msg4
-
-    call print_tab2
+    PRINTZ msg5
+    PRINT_BIN 237
+    PRINTZ msg6
+    PRINT_BIN 15
+    PRINTZ msg4
+    PRINTZ str_tab2
     mov al, 237          ; integer to convert
     and al, 15           ; Perform XOR operation
     call print_binary_string
@@ -79,16 +71,12 @@ _start:
     ;-------------------------------------
     ; --- Step 3 Or Operation  ---
     ;-------------------------------------
-    call print_msg7
-    mov al, 193          ; integer to convert
-    call print_binary_string
-
-    call print_msg8
-    mov al, 4          ; integer to convert
-    call print_binary_string
-    call print_msg4
-
-    call print_tab2
+    PRINTZ msg7
+    PRINT_BIN 193
+    PRINTZ msg8
+    PRINT_BIN 4
+    PRINTZ msg4
+    PRINTZ str_tab2
     mov al, 193          ; integer to convert
     or al, 4           ; Perform OR operation
     call print_binary_string
@@ -97,11 +85,9 @@ _start:
     ;-------------------------------------
     ; --- Step 4 Shift Right Operation  ---
     ;-------------------------------------
-    call print_msg9
-    mov al, 0xF0          ; integer to convert
-    call print_binary_string
-
-    call print_msg10
+    PRINTZ msg9
+    PRINT_BIN 0xF0
+    PRINTZ msg10
     mov al, 0xF0          ; integer to convert
     shr al, 4            ; Perform shift right operation
     call print_binary_string
@@ -110,78 +96,8 @@ _start:
     ;---------------------------------
     ; --- Step 5 Cleanup and Exit  ---
     ;---------------------------------
-    call print_end_spcs
+    PRINTZ end_spcs
     call exit
-
-print_msg1_2:
-    mov rsi, msg1
-    mov rdx, len1
-    call print_buffer
-
-    mov rsi, msg2
-    mov rdx, len2
-    call print_buffer
-    ret
-
-print_msg3:
-    mov rsi, msg3
-    mov rdx, len3
-    call print_buffer
-    ret
-
-print_msg4:
-    mov rsi, msg4
-    mov rdx, len4
-    call print_buffer
-    ret
-
-print_msg5:
-    mov rsi, msg5
-    mov rdx, len5
-    call print_buffer
-    ret
-
-print_msg6:
-    mov rsi, msg6
-    mov rdx, len6
-    call print_buffer
-    ret
-
-print_msg7:
-    mov rsi, msg7
-    mov rdx, len7
-    call print_buffer
-    ret
-
-print_msg8:
-    mov rsi, msg8
-    mov rdx, len8
-    call print_buffer
-    ret
-
-print_msg9:
-    mov rsi, msg9
-    mov rdx, len9
-    call print_buffer
-    ret
-
-print_msg10:
-    mov rsi, msg10
-    mov rdx, len10
-    call print_buffer
-    ret
-
-print_end_spcs:
-    mov rsi, end_spcs
-    mov rdx, 4
-    call print_buffer
-    ret
-
-print_tab2:
-    mov rsi, str_tab2
-    mov rdx, len_tb2
-    call print_buffer
-    ret
 
 print_binary_string:
     ;print the binary string
@@ -196,6 +112,17 @@ print_buffer:
     mov rax, 1           ; sys_write
     mov rdi, 1           ; stdout
     syscall    
+    ret
+
+print_cstr:
+    xor rdx, rdx
+.find_null:
+    cmp byte [rsi + rdx], 0
+    je .len_ready
+    inc rdx
+    jmp .find_null
+.len_ready:
+    call print_buffer
     ret
 
 print_bin_str:   

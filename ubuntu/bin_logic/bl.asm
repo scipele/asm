@@ -1,7 +1,7 @@
 section .data
     msg1 db 0xA, 0xA, "Examples of bitwise operations:", 0xA, 0xA, 0   ;newline chars
 
-    msg2 db "1. xor operation scramles the initial byte:", 0xA, "          ", 0
+    msg2 db "1. xor operation scrambles the initial byte:", 0xA, "          ", 0
     msg3 db "      xor ", 0
     msg4 db "     ---------------", 0xA, 0
 

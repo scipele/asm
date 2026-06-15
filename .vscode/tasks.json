@@ -6,7 +6,7 @@
             "type": "shell",
             "command": "nasm",
             "args": [
-                "-f", "elf64",  // "-g", "-F", "dwarf",
+                "-f", "elf64","-g", "-F", "dwarf",
                 "${fileDirname}/${fileBasenameNoExtension}.asm",
                 "-o", "${fileDirname}/${fileBasenameNoExtension}.o"
             ],

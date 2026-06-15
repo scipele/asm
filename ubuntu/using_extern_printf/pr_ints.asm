@@ -6,7 +6,7 @@ extern printf                   ; This program calles the C library function pri
 ; Note: The "wrt ..plt" is used to ensure that the call goes through the Procedure Linkage Table (PLT)
 ; for dynamic linking, which is necessary when calling external functions like printf in a;
 ; position-independent executable (PIE).
-%macro PRNT_HDR 0               ; 2 indicates the number of parameters passed by %# (excluding named format string)
+%macro PRNT_HDR 0               ; 0 indicates the number of parameters passed by %# (excluding named format string)
     mov rdi, formatString1       
     xor rax, rax                 
     call printf wrt ..plt

@@ -6,8 +6,7 @@
             "type": "shell",
             "command": "nasm",
             "args": [
-                "-f", "elf64",
-                "-g", "-F", "dwarf",
+                "-f", "elf64",  // "-g", "-F", "dwarf",
                 "${fileDirname}/${fileBasenameNoExtension}.asm",
                 "-o", "${fileDirname}/${fileBasenameNoExtension}.o"
             ],
@@ -18,11 +17,31 @@
             }
         },
         {
-            "label": "2. Link (gcc)",
+            "label": "2a. Link (gcc)",
             "type": "shell",
             "command": "gcc",
             "args": [
                 "-no-pie",
+                "${fileDirname}/${fileBasenameNoExtension}.o",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": [
+                "1. Assemble (nasm)"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "2b. Link (ld)",
+            "type": "shell",
+            "command": "ld",
+            "args": [
                 "${fileDirname}/${fileBasenameNoExtension}.o",
                 "-o", "${fileDirname}/${fileBasenameNoExtension}"
             ],

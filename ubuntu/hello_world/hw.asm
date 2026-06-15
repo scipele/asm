@@ -1,3 +1,7 @@
+; compile and link with
+; nasm -f elf64 hw.asm -o hw.o
+; then link with ld hw.o -o hw
+
 section .data
     ;db: "define byte" and is used to allocate and initialize a byte of memory with a specific value.
     ; In this case, we are using db to define a string of bytes that represent the message we want to print,

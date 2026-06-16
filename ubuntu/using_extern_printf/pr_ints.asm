@@ -16,7 +16,7 @@ extern printf                   ; This program calles the C library function pri
     mov rdi, formatString2       
     mov rsi, %1                  ; 2nd: Decimal
     mov rdx, %1                  ; 3rd: Character
-    mov rcx, %1                  ; 4th: Hex
+    mov rcx, %1                  ; 4th: Hex`
     mov r8,  %1                  ; 5th: Octal
     mov r9,  %2                  ; 6th: Binary string pointer
     xor rax, rax                 

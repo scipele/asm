@@ -1,5 +1,6 @@
-; compile with nasm -f elf64 prnt.asm -o prnt.o
-; link with gcc: gcc -no-pie prnt.o -o prnt
+; compile w/ nasm & then link w/ gcc:
+;nasm -f elf64 pr_ints.asm -o pr_ints.o
+;gcc -no-pie pr_ints.o -o pr_ints
 
 extern printf                   ; This program calles the C library function printf, so we declare it as an external symbol
 

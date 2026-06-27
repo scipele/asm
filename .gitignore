@@ -1,7 +1,0 @@
-# Ignore all files with no extension
-*
-!*.*
-!*/
-*.o
-ubuntu/hello_world/hw.o
-.vscode/  #ignore the .vscode folder

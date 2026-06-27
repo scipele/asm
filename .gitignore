@@ -1,16 +1,23 @@
-{
-    "files.exclude": {
-        // Hide every file in the directory by default
-        "**/*": true,
-        
-        // Explicitly allow folders to remain visible
-        "**/*/": false,
-        
-        // Explicitly reveal your source files and configs
-        "**/*.asm": false,
-        "**/*.s": false,
-        "**/*.json": false,
-        "**/*.md": false
-    }
-}
-/.vscode/
+# Ignore VS Code settings (recommended)
+.vscode/
+
+# Common build artifacts
+*.o
+*.obj
+*.out
+*.exe
+*.so
+*.dll
+
+# Build / output directories
+build/
+dist/
+bin/
+out/
+target/
+
+# Ignore everything else without an extension (Linux binaries)
+*
+!*/
+!*.*
+.vscode/launch.json

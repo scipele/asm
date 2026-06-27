@@ -16,4 +16,5 @@ target/
 # Ignore all extensionless files (Linux executables)
 *
 !*/
+!*.o
 !*.*

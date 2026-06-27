@@ -1,23 +1,19 @@
-# Ignore VS Code settings (recommended)
+# VS Code
 .vscode/
 
-# Common build artifacts
+# Compiled object files and binaries (Linux)
 *.o
-*.obj
 *.out
-*.exe
 *.so
-*.dll
 
-# Build / output directories
+# Build directories
 build/
 dist/
 bin/
 out/
 target/
 
-# Ignore everything else without an extension (Linux binaries)
+# Ignore all extensionless files (Linux executables)
 *
 !*/
 !*.*
-.vscode/launch.json

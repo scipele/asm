@@ -1,12 +1,6 @@
 # VS Code
 .vscode/
 
-# Compiled object files and binaries (Linux)
-*.o
-*.out
-*.so
-*.a
-
 # Build directories
 build/
 dist/
@@ -14,7 +8,13 @@ bin/
 out/
 target/
 
-# Ignore all extensionless files (Linux executables) — but keep directories and normal files
+# Ignore everything first
 *
 !*/
 !*.*
+ 
+# === Re-ignore compiled files (these must be at the bottom) ===
+*.o
+*.out
+*.so
+*.a

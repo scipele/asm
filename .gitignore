@@ -5,6 +5,7 @@
 *.o
 *.out
 *.so
+*.a
 
 # Build directories
 build/
@@ -13,8 +14,7 @@ bin/
 out/
 target/
 
-# Ignore all extensionless files (Linux executables)
+# Ignore all extensionless files (Linux executables) — but keep directories and normal files
 *
 !*/
-!*.o
 !*.*

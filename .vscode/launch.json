@@ -13,7 +13,7 @@
             "externalConsole": false,
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "asm: Build with NASM",
+            "preLaunchTask": "2b. Link (ld)",  // Change to 2a. Link (gcc) if you want to use gcc for linking instead of ld
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

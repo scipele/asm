@@ -1,3 +1,6 @@
+; compile with: nasm -f elf64 ascii.asm -o ascii.o
+; link with: ld ascii.o -o ascii
+
 default rel
 
 section .data

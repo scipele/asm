@@ -1,0 +1,16 @@
+{
+    "files.exclude": {
+        // Hide every file in the directory by default
+        "**/*": true,
+        
+        // Explicitly allow folders to remain visible
+        "**/*/": false,
+        
+        // Explicitly reveal your source files and configs
+        "**/*.asm": false,
+        "**/*.s": false,
+        "**/*.json": false,
+        "**/*.md": false
+    }
+}
+/.vscode/

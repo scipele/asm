@@ -20,7 +20,7 @@ _start:
     PRINTZ hdr2 
 
     ; Pre-allocate 256 bytes on the stack for our array scratchpad
-    sub rsp, 256 
+    sub rsp, 256              
     mov rdi, rsp            ; rdi = Array pointer
 
     call gen_fib            ; Step 1: Generate values. Returns total count in rax.
@@ -60,7 +60,7 @@ fib_loop:
     mov r10, r8
     add r10, r9             ; r10 = next Fibonacci number
     
-    cmp r10, 100000          ; Stop loop condition boundary
+    cmp r10, 2000000          ; Stop loop condition boundary
     jge fib_done            
     
     mov [rdi + rcx*8], r10  ; Store directly into our array

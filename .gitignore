@@ -18,3 +18,4 @@ target/
 *.out
 *.so
 *.a
+asm-runner-extension/

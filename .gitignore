@@ -19,3 +19,4 @@ target/
 *.so
 *.a
 asm-runner-extension/
+package.json
